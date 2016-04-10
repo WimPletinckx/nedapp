@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Academisch Nederlands{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h2>Welkom bij het oefenprogramma van Academisch Nederlands!</h2>
+</div>
+
+<div class="span8">
+	<form action="" method="post" name="exerciseform">
+	<table class="table table-striped">
+		<style>
+			.table > tbody > tr > td {
+			     vertical-align: middle;
+			}		
+		</style>	
+      <thead>
+        {% if level == 0 %}
+        <tr>
+          <th>#</th>
+          <th>Woord</th>
+          <th>Woordverklaring</th>
+        </tr>
+        {% elif level == 1 %}
+        <tr>
+          <th>#</th>
+          <th>Woordverklaring</th>
+          <th>Woord</th>
+        </tr>
+        {% else %}
+        <tr>
+          <th>#</th>
+          <th>Woord in context</th>
+          <th>Woord</th>
+        </tr>
+        {% endif %}
+      </thead>
+      <tbody>
+        {% for l in exerciseform.answers %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ exercises[loop.index-1] }}</td>
+          <td>{{ l.form.answer(size=50) }} </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="span8">
+		<input type="submit" class="btn btn-default" name="action" value="Bereken score"/>
+	</div>
+    </form>
+</div>
+
+<!--
+<div class="span8">
+	<form action="{{ url_for('.exercise') }}" method="post">
+		<input type="submit" class="btn btn-default" name="action" value="Bereken score"/>
+	</form>
+	<p></p>
+</div>
+-->
+
+<p></p>
+
+{% if score >= 0 %}
+	{% if score == exercises|length %}
+<div class="well">Proficiat! Jouw score = {{ score }}/{{exercises|length}}</div>
+	{% else %}
+<div class="well">Jouw score = {{ score }}/{{exercises|length}}</div>
+	{% endif %}
+{%endif %}
+	
+{% endblock %}
