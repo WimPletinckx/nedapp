@@ -16,11 +16,38 @@ list= [ {"woord":"a1","woordverklaring":"b1","woordincontext":"c1"}
       , {"woord":"a7","woordverklaring":"b7","woordincontext":"c7"}
 ]
 
+def loadList():
+    list=[]
+    words = []
+    with open("woorden.txt","r") as f :
+        words = f.readlines()
+
+    explanations = []
+    with open("uitleg.txt","r") as f :
+        explanations = f.readlines()
+
+    sentences = []
+    with open("zinnen.txt","r") as f :
+        sentences = f.readlines()
+
+    if len(words)==len(explanations) and len(words)==len(sentences):
+        list = []
+        for i in range(len(words)):
+            dict = {}
+            dict["woord"]=words[i].decode('Cp1252').strip()
+            dict["woordverklaring"]=explanations[i].decode('Cp1252').strip()
+            dict["woordincontext"]=sentences[i].decode('Cp1252').strip()
+            list.append(dict)
+    return list
+
 @main.route('/', methods=['GET', 'POST'])
 def index():
     form = ExerciseConfigForm()
     form.startIndex.choices=[]
     form.endIndex.choices=[]
+
+    list = loadList()
+
     for i in range(len(list)):
         form.startIndex.choices.append((i, list[i]["woord"]))
         form.endIndex.choices.append((i, list[i]["woord"]))
@@ -59,6 +86,7 @@ def index():
 def exercise():
     form = ExerciseForm()
     exercises = []
+    list = loadList()
 
     if not session.get('exerciseStarted',False):
         answerdict = {}
@@ -72,30 +100,30 @@ def exercise():
                 question = list[i]["woordverklaring"]
                 answerdict[question]= list[i]["woord"]
             else :
-                question = list[i]["woordincontext"]
+                question = list[i]["woordincontext"].replace(list[i]["woord"],"...")
+
                 answerdict[question]= list[i]["woord"]
             exercises.append(question)
         session['answerdict']=answerdict
         session['exercises']=exercises
         session['exerciseStarted']=1
     else :
-        print "started"
         exercises = session['exercises']
 
     if request.method == 'POST':
         if request.form['action'] == 'Bereken score':
-            print form.answers
             session['answers']=[]
             score = 0
-            print len(form.answers.entries)
             for i in range(len(form.answers.entries)):
-                print i
                 answer = form.answers.entries[i].data['answer']
                 session['answers'].append(answer)
-                if answer.strip() == session['answerdict'][exercises[i]]:
+                answerList=session['answerdict'][exercises[i]].strip().split(";")
+                answerList = [i.strip() for i in answerList]
+
+                if answer.strip() in answerList:
                     score += 1
                 else :
-                    print "doesn't match with %s"%session['answerdict'][exercises[i]]
+                    print "doesn't match with %s"%str(answerList)
 
             session['score'] = score
             return redirect(url_for('.exercise'))
